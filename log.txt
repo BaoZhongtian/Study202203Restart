@@ -1,0 +1,55 @@
+"C:\Program Files (x86)\Python36\python.exe" C:/PythonProject/Study202203Restart/Run/Exp_Beaver_Baseline.py
+  0%|          | 0/364687 [00:00<?, ?it/s]Building prefix dict from the default dictionary ...
+Loading model from cache C:\Users\ADMINI~1\AppData\Local\Temp\jieba.cache
+Loading model cost 0.972 seconds.
+Prefix dict has been built successfully.
+100%|██████████| 364687/364687 [04:27<00:00, 1362.52it/s]
+100%|██████████| 3000/3000 [00:02<00:00, 1442.94it/s]
+[Training] 5000/5427700 [..............................] - ETA: 227:10:35  loss: 5.8183
+  0%|          | 0/2239 [00:00<?, ?it/s]step:    5000	 loss: 30535.935547
+
+2240it [01:20, 27.85it/s]
+[Training] 10000/5427700 [..............................] - ETA: 229:46:37  loss: 5.4938
+step:   10000	 loss: 27017.119141
+
+2240it [01:23, 26.93it/s]
+[Training] 15000/5427700 [..............................] - ETA: 228:56:28  loss: 5.3735
+step:   15000	 loss: 26096.892578
+
+2240it [01:22, 27.12it/s]
+[Training] 20000/5427700 [..............................] - ETA: 229:34:10  loss: 4.8373
+step:   20000	 loss: 25601.628906
+
+2240it [01:28, 25.37it/s]
+[Training] 25000/5427700 [..............................] - ETA: 226:49:24  loss: 5.4931
+step:   25000	 loss: 25658.726562
+
+2240it [01:21, 27.60it/s]
+[Training] 30000/5427700 [..............................] - ETA: 224:35:55  loss: 5.3401
+step:   30000	 loss: 25492.263672
+
+2240it [01:27, 25.59it/s]
+[Training] 35000/5427700 [..............................] - ETA: 223:53:55  loss: 4.7706
+step:   35000	 loss: 25421.767578
+
+2240it [01:21, 27.36it/s]
+[Training] 38298/5427700 [..............................] - ETA: 224:21:05  loss: 5.3337 Traceback (most recent call last):
+  File "C:/PythonProject/Study202203Restart/Run/Exp_Beaver_Baseline.py", line 112, in <module>
+    train(model, criterion, optimizer, train_dataset, valid_dataset, saver)
+  File "C:/PythonProject/Study202203Restart/Run/Exp_Beaver_Baseline.py", line 72, in train
+    scores = model(batch.src, batch.tgt)
+  File "C:\Program Files (x86)\Python36\lib\site-packages\torch\nn\modules\module.py", line 1051, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\PythonProject\Study202203Restart\beaver\model\nmt_model.py", line 44, in forward
+    decoder_outputs, _ = self.decoder(tgt, enc_out, src_pad, tgt_pad)
+  File "C:\Program Files (x86)\Python36\lib\site-packages\torch\nn\modules\module.py", line 1051, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\PythonProject\Study202203Restart\beaver\model\transformer.py", line 117, in forward
+    tgt_mask = torch.gt(tgt_mask + upper_triangle, 0)
+RuntimeError: The size of tensor a (2298) must match the size of tensor b (1000) at non-singleton dimension 2
+
+进程已结束，退出代码 1
+
+
+['西汉姆 将 于 周二 晚上 在 英超 联赛 中 主场 迎战 曼联 。 <unk> 西汉姆 将 于 周二 在 伦敦 举行 的 英超 联赛 中 主场 迎战 曼联 。 <unk> 西汉姆 将 于 周二 在 英超 联赛 中 主场 迎战 曼联 。 <unk>']
+['周六 下午 ， 西汉姆 联 在 厄普 顿 公园 倒数 第二场 比赛 中 主场 迎战 斯旺西 · 城 。 <unk> 在 博林 球场 呆 了 112 年 后 ， 锤子 队 将 在 赛季 结束 时 搬 到 奥林匹克 体育场 。 <unk> 斯拉 文 · 比利 奇 的 队员 们 仍然 希望 下个 赛季 能 在 他们 的 新 体育场 确保 欧洲 足球 的 安全 。 <unk>']
