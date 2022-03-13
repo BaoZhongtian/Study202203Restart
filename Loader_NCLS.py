@@ -1,7 +1,9 @@
 import os
+import json
 import jieba
 import tqdm
 import torch
+import numpy
 import random
 from typing import List
 from typing import Dict
@@ -77,6 +79,32 @@ class Field(object):
 
         return padded.long().to(device)
 
+    def process_with_mask(self, article, summary, keywords, device):
+        bos = [self.bos_token] if self.bos_token else []
+        eos = [self.eos_token] if self.eos_token else []
+
+        article = article.copy()
+        label = [-100 for _ in range(len(article))]
+        for index in range(len(article)):
+            if article[index] in keywords:
+                label[index] = self.encode([article[index]])[0]
+                article[index] = '[MASK]'
+
+        input_article = bos + summary + bos + article
+        label = [-100] * len(bos + summary + bos) + label
+        assert len(input_article) == len(label)
+
+        if len(input_article) > 2048:
+            input_article = input_article[0:2048]
+            label = label[0:len(input_article)]
+
+        input_article += eos
+        label += [-100]
+
+        treat_sample = {'input': torch.LongTensor(self.encode(input_article)).unsqueeze(0).to(device),
+                        'label': torch.LongTensor(label).unsqueeze(0).to(device)}
+        return treat_sample
+
     def encode(self, tokens):
         ids = []
         for tok in tokens:
@@ -133,7 +161,8 @@ Example = namedtuple("Example", ['src', 'tgt'])
 
 
 class TranslationDataset(object):
-    def __init__(self, treat_data, batch_size: int, device: torch.device, train: bool, fields: Dict[str, Field]):
+    def __init__(self, treat_data, batch_size: int, device: torch.device, train: bool, fields: Dict[str, Field],
+                 word_flag=True):
         self.batch_size = batch_size
         self.train = train
         self.device = device
@@ -143,7 +172,10 @@ class TranslationDataset(object):
         examples = []
         for treat_sample in tqdm.tqdm(treat_data):
             treat_article = treat_sample['Article'].lower().strip().split()[0:2048]
-            treat_label = jieba.lcut(treat_sample['CrossLingualSummary'])
+            if word_flag:
+                treat_label = jieba.lcut(treat_sample['CrossLingualSummary'])
+            else:
+                treat_label = [_ for _ in treat_sample['CrossLingualSummary'].lower()]
             if len(treat_label) > len(treat_article): continue
             examples.append(Example(treat_article, treat_label))
         examples, self.seed = self.sort(examples)
@@ -183,32 +215,51 @@ class TranslationDataset(object):
             yield minibatch
 
 
-def build_dataset(sample_number=None, use_part='train', batch_shape_limit=1024):
+def build_dataset(sample_number=None, use_part='train', batch_shape_limit=1024, word_flag=True):
     src_field = Field(unk=True, pad=True, bos=False, eos=False)
     tgt_field = Field(unk=True, pad=True, bos=True, eos=True)
 
-    with open(load_path + 'SharedDictionary.vocab', 'r', encoding='UTF-8')as file:
-        dictionary_words = [line.strip() for line in file]
+    if word_flag:
+        with open(load_path + 'SharedDictionary.vocab', 'r', encoding='UTF-8')as file:
+            dictionary_words = [line.strip() for line in file]
+    else:
+        with open(load_path + 'SharedDictionary_Character.vocab', 'r', encoding='UTF-8')as file:
+            dictionary_words = [line.strip() for line in file]
     src_field.load_vocab(dictionary_words, tgt_field.special)
     tgt_field.load_vocab(dictionary_words, tgt_field.special)
     treat_data = ncls_loader(sample_number, use_part)
 
-    return TranslationDataset(treat_data, batch_shape_limit, device, False, {'src': src_field, 'tgt': tgt_field})
+    return TranslationDataset(treat_data, batch_shape_limit, device, False, {'src': src_field, 'tgt': tgt_field},
+                              word_flag)
+
+
+def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10):
+    field = Field(unk=True, pad=True, bos=True, eos=True)
+    with open(load_path + 'SharedDictionary.vocab', 'r', encoding='UTF-8')as file:
+        dictionary_words = [line.strip() for line in file]
+    dictionary_words.append('[MASK]')
+
+    field.load_vocab(dictionary_words, field.special)
+    total_data = ncls_loader(sample_number, use_part)
+    total_keywords = json.load(open(load_path + '%sKeywords.json' % use_part, 'r'))[0:len(total_data)]
+
+    # mask_id = field.encode(['[MASK]'])[0]
+
+    treated_samples_all = []
+    for indexX in tqdm.trange(len(total_data)):
+        treat_article = total_data[indexX]['Article'].lower().strip().split()[0:2048].copy()
+        treat_summary = jieba.lcut(total_data[indexX]['CrossLingualSummary'])
+        treat_keywords = set([_[0] for _ in total_keywords[indexX][0:keywords_number]])
+        if len(treat_summary) > len(treat_article): continue
+
+        treated_samples_all.append(field.process_with_mask(treat_article, treat_summary, treat_keywords, device))
+    return treated_samples_all
 
 
 if __name__ == '__main__':
-    import numpy
-
-    train_dataset = build_dataset(use_part='train')
-    counter = 0
-    for sample in train_dataset:
-        counter += 1
-        if counter < 38295: continue
-        print(counter, numpy.shape(sample.src), numpy.shape(sample.tgt))
-        if counter > 38295 + 10: break
-        # exit()
-    # print('\n', len(result))
-    # print(result[2357])
+    dataset = build_mask_dataset()
+    for sample in dataset:
+        print(numpy.shape(sample['label']), numpy.shape(sample['input']))
     exit()
     for sample in result[0]:
         print(sample, result[0][sample])

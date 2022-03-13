@@ -2,6 +2,7 @@ import os
 import tqdm
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+from ModelStructure.option import option
 import torch
 from Tools import get_device, ProgressBar
 from Loader_NCLS import build_dataset
@@ -13,9 +14,6 @@ from beaver.utils import calculate_bleu
 from beaver.utils import parseopt, printing_opt
 
 device = get_device()
-
-
-
 
 
 def valid(model, criterion, valid_dataset, step, saver):
@@ -52,7 +50,7 @@ def train(model, criterion, optimizer, train_dataset, valid_dataset, saver):
     for epoch in range(20):
         for i, batch in enumerate(train_dataset):
             step_counter += 1
-            if step_counter < 35000: continue
+            # if step_counter < 35000: continue
 
             scores = model(batch.src, batch.tgt)
             loss = criterion(scores, batch.tgt)
@@ -81,20 +79,22 @@ def train(model, criterion, optimizer, train_dataset, valid_dataset, saver):
 
 
 if __name__ == '__main__':
-    train_dataset = build_dataset(use_part='train')
-    valid_dataset = build_dataset(use_part='valid')
+    opt = option()
+    opt.word_flag = False
+    opt.model_path = "E:/ProjectData/NCLS/Beaver-AllData-Character"
+
+    train_dataset = build_dataset(use_part='train', word_flag=opt.word_flag)
+    valid_dataset = build_dataset(use_part='valid', word_flag=opt.word_flag)
     fields = valid_dataset.fields = train_dataset.fields
     pad_ids = {"src": fields["src"].pad_id, "tgt": fields["tgt"].pad_id}
     vocab_sizes = {"src": len(fields["src"].vocab), "tgt": len(fields["tgt"].vocab)}
 
-    opt = option()
     model = NMTModel.load_model(opt, pad_ids, vocab_sizes).to(device)
-    checkpoint = torch.load("E:/ProjectData/NCLS/Beaver-AllData-220307-121224/checkpoint-step-035000")
-    model.load_state_dict(checkpoint["model"])
+    # checkpoint = torch.load("E:/ProjectData/NCLS/Beaver-AllData-220307-121224/checkpoint-step-035000")
+    # model.load_state_dict(checkpoint["model"])
 
     saver = Saver(opt)
     criterion = LabelSmoothingLoss(opt.label_smoothing, vocab_sizes["tgt"], pad_ids["tgt"]).to(device)
 
-    n_step = 1
     optimizer = torch.optim.RMSprop(model.parameters(), opt.lr)
     train(model, criterion, optimizer, train_dataset, valid_dataset, saver)
