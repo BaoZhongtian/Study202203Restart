@@ -8,7 +8,7 @@ import datasets
 if __name__ == '__main__':
     metrics = datasets.load_metric('rouge')
     print('HERE')
-    load_path = 'E:/ProjectData/NCLS/Predict-Another-Character/'
+    load_path = 'E:/ProjectData/NCLS/Predict-Another-Character-2500000/'
 
     valid_dataset = build_dataset(use_part='test', batch_shape_limit=256, word_flag=False)
 

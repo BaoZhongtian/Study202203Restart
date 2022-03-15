@@ -1,4 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from beaver.model.nmt_model import NMTModel
-
+from beaver.model.nmt_model import NMTModel, MaskedKeywordsModel

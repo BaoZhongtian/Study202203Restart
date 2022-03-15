@@ -84,14 +84,14 @@ class Field(object):
         eos = [self.eos_token] if self.eos_token else []
 
         article = article.copy()
-        label = [-100 for _ in range(len(article))]
+        label = [self.pad_id for _ in range(len(article))]
         for index in range(len(article)):
             if article[index] in keywords:
                 label[index] = self.encode([article[index]])[0]
                 article[index] = '[MASK]'
 
         input_article = bos + summary + bos + article
-        label = [-100] * len(bos + summary + bos) + label
+        label = [self.pad_id] * len(bos + summary + bos) + label
         assert len(input_article) == len(label)
 
         if len(input_article) > 2048:
@@ -99,11 +99,11 @@ class Field(object):
             label = label[0:len(input_article)]
 
         input_article += eos
-        label += [-100]
+        label += [self.pad_id]
 
-        treat_sample = {'input': torch.LongTensor(self.encode(input_article)).unsqueeze(0).to(device),
-                        'label': torch.LongTensor(label).unsqueeze(0).to(device)}
-        return treat_sample
+        # treat_sample = {'input': torch.LongTensor(self.encode(input_article)).unsqueeze(0).to(device),
+        #                 'label': torch.LongTensor(label).unsqueeze(0).to(device)}
+        return Example(self.encode(input_article), torch.LongTensor(label))
 
     def encode(self, tokens):
         ids = []
@@ -233,10 +233,14 @@ def build_dataset(sample_number=None, use_part='train', batch_shape_limit=1024, 
                               word_flag)
 
 
-def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10):
+def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10, word_flag=True):
     field = Field(unk=True, pad=True, bos=True, eos=True)
-    with open(load_path + 'SharedDictionary.vocab', 'r', encoding='UTF-8')as file:
-        dictionary_words = [line.strip() for line in file]
+    if word_flag:
+        with open(load_path + 'SharedDictionary.vocab', 'r', encoding='UTF-8')as file:
+            dictionary_words = [line.strip() for line in file]
+    else:
+        with open(load_path + 'SharedDictionary_Character.vocab', 'r', encoding='UTF-8')as file:
+            dictionary_words = [line.strip() for line in file]
     dictionary_words.append('[MASK]')
 
     field.load_vocab(dictionary_words, field.special)
@@ -248,16 +252,19 @@ def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10)
     treated_samples_all = []
     for indexX in tqdm.trange(len(total_data)):
         treat_article = total_data[indexX]['Article'].lower().strip().split()[0:2048].copy()
-        treat_summary = jieba.lcut(total_data[indexX]['CrossLingualSummary'])
+        if word_flag:
+            treat_summary = jieba.lcut(total_data[indexX]['CrossLingualSummary'])
+        else:
+            treat_summary = [_ for _ in total_data[indexX]['CrossLingualSummary'].lower()]
         treat_keywords = set([_[0] for _ in total_keywords[indexX][0:keywords_number]])
         if len(treat_summary) > len(treat_article): continue
 
         treated_samples_all.append(field.process_with_mask(treat_article, treat_summary, treat_keywords, device))
-    return treated_samples_all
+    return field, treated_samples_all
 
 
 if __name__ == '__main__':
-    dataset = build_mask_dataset()
+    _, dataset = build_mask_dataset()
     for sample in dataset:
         print(numpy.shape(sample['label']), numpy.shape(sample['input']))
     exit()

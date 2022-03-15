@@ -12,8 +12,8 @@ if __name__ == '__main__':
         id2word[index] = data[index].replace('\n', '')
 
     tfidf = joblib.load('TfIdfTransformer.joblib')
-    load_path = 'E:/ProjectData/NCLS/Matrix/'
-    save_path = 'E:/ProjectData/NCLS/Keywords-Result/'
+    load_path = 'E:/ProjectData/NCLS/Matrix-Test/'
+    save_path = 'E:/ProjectData/NCLS/Keywords-Test-Result/'
     if not os.path.exists(save_path): os.makedirs(save_path)
     for filename in os.listdir(load_path):
         if os.path.exists(save_path + filename.replace('csv', 'json')): continue

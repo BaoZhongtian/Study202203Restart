@@ -26,12 +26,12 @@ if __name__ == '__main__':
     opt = option()
     opt.beam_size = 1
     model = NMTModel.load_model(opt, pad_ids, vocab_sizes).to(device)
-    checkpoint = torch.load("E:/ProjectData/NCLS/Beaver-AllData-Character-220312-125400/checkpoint-step-1080000")
+    checkpoint = torch.load("E:/ProjectData/NCLS/Beaver-AllData-Character-220312-125400/checkpoint-step-2500000")
     model.load_state_dict(checkpoint["model"])
 
     model.eval()
     counter = 0
-    save_path = 'E:/ProjectData/NCLS/Predict-Another-Character/'
+    save_path = 'E:/ProjectData/NCLS/Predict-Another-Character-2500000/'
     if not os.path.exists(save_path): os.makedirs(save_path)
     for index, batch in enumerate(tqdm.tqdm(valid_dataset)):
         if os.path.exists(save_path + '%08d.json' % index): continue

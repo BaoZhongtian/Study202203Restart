@@ -13,12 +13,12 @@ if __name__ == '__main__':
         word2id[data[index].replace('\n', '')] = index
 
     train_data = [_['Article'].lower().strip().split()[0:2048] for _ in
-                  ncls_loader(use_part='train')]
+                  ncls_loader(use_part='valid')]
 
     matrix = []
     match_counter, total_counter = 0, 0
 
-    save_path = 'E:/ProjectData/NCLS/Matrix/'
+    save_path = 'E:/ProjectData/NCLS/Matrix-Valid/'
     if not os.path.exists(save_path): os.makedirs(save_path)
 
     for start_position in tqdm.trange(0, len(train_data), 5000):

@@ -88,3 +88,46 @@ class NMTModel(nn.Module):
         # elif checkpoint is not None:
         #     model.load_state_dict(checkpoint)
         return model
+
+
+class MaskedKeywordsModel(nn.Module):
+    def __init__(self, encoder: Encoder, vocab_sizes: int):
+        super(MaskedKeywordsModel, self).__init__()
+
+        self.encoder = encoder
+        self.linear_hidden = nn.Linear(in_features=512, out_features=vocab_sizes, bias=True)
+        self.lsm = nn.LogSoftmax(dim=-1)
+
+    def forward(self, src, tgt):
+        src_pad = src.eq(self.encoder.embedding.word_padding_idx)
+
+        enc_out = self.encoder(src, src_pad)
+        score = self.linear_hidden(enc_out)[:, 1:, :]
+        lsm_score = self.lsm(score)
+        return lsm_score
+
+    @classmethod
+    def load_model(cls, model_opt,
+                   pad_ids: Dict[str, int],
+                   vocab_sizes: Dict[str, int],
+                   checkpoint=None):
+        src_embedding = Embedding(embedding_dim=model_opt.hidden_size,
+                                  dropout=model_opt.dropout,
+                                  padding_idx=pad_ids["src"],
+                                  vocab_size=vocab_sizes["src"])
+
+        encoder = Encoder(model_opt.layers,
+                          model_opt.heads,
+                          model_opt.hidden_size,
+                          model_opt.dropout,
+                          model_opt.ff_size,
+                          src_embedding)
+
+        model = cls(encoder, vocab_sizes['src'])
+
+        # if checkpoint is None:
+        #     checkpoint = torch.load(model_opt.train_from, map_location=lambda storage, loc: storage)
+        #     model.load_state_dict(checkpoint["model"])
+        # elif checkpoint is not None:
+        #     model.load_state_dict(checkpoint)
+        return model
