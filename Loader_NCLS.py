@@ -14,7 +14,7 @@ EOS_TOKEN = "<eos>"
 BOS_TOKEN = "<bos>"
 UNK_TOKEN = "<unk>"
 PAD_TOKEN = "<pad>"
-load_path = 'C:/PythonProject/Study202203Restart/Pretreatment/'
+load_path = 'D:/PythonProject/Study202203Restart/Pretreatment/'
 device = get_device()
 
 
@@ -103,7 +103,7 @@ class Field(object):
 
         # treat_sample = {'input': torch.LongTensor(self.encode(input_article)).unsqueeze(0).to(device),
         #                 'label': torch.LongTensor(label).unsqueeze(0).to(device)}
-        return Example(self.encode(input_article), torch.LongTensor(label))
+        return Example(self.encode(input_article), label)
 
     def encode(self, tokens):
         ids = []
@@ -264,9 +264,9 @@ def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10,
 
 
 if __name__ == '__main__':
-    _, dataset = build_mask_dataset()
+    _, dataset = build_mask_dataset(sample_number=100)
     for sample in dataset:
-        print(numpy.shape(sample['label']), numpy.shape(sample['input']))
+        print(numpy.shape(sample.src), numpy.shape(sample.tgt))
     exit()
     for sample in result[0]:
         print(sample, result[0][sample])

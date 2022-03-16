@@ -56,10 +56,6 @@ def train(model, criterion, optimizer, train_dataset, valid_dataset, saver):
             # exit()
 
             scores = model(batch.src, batch.tgt)
-
-            import numpy
-            print(numpy.shape(scores), numpy.shape(batch.tgt))
-            exit()
             loss = criterion(scores, batch.tgt)
             loss.backward()
             total_loss += loss.data
