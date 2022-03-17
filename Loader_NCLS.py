@@ -14,7 +14,7 @@ EOS_TOKEN = "<eos>"
 BOS_TOKEN = "<bos>"
 UNK_TOKEN = "<unk>"
 PAD_TOKEN = "<pad>"
-load_path = 'D:/PythonProject/Study202203Restart/Pretreatment/'
+load_path = 'C:/PythonProject/Study202203Restart/Pretreatment/'
 device = get_device()
 
 
@@ -94,8 +94,8 @@ class Field(object):
         label = [self.pad_id] * len(bos + summary + bos) + label
         assert len(input_article) == len(label)
 
-        if len(input_article) > 2048:
-            input_article = input_article[0:2048]
+        if len(input_article) > 1024:
+            input_article = input_article[0:1024]
             label = label[0:len(input_article)]
 
         input_article += eos
