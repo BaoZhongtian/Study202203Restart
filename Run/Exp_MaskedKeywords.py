@@ -6,7 +6,7 @@ from ModelStructure.option import option
 import torch
 import numpy
 from Tools import get_device, ProgressBar
-from Loader_NCLS import build_mask_dataset
+from Loader_NCLS import build_mask_dataset, build_overlap_mask_dataset
 from beaver.loss import WarmAdam, LabelSmoothingLoss
 from beaver.loss.optimizers import LabelChooseLoss
 from beaver.model import NMTModel, MaskedKeywordsModel
@@ -73,10 +73,8 @@ def train(model, criterion, optimizer, train_dataset, valid_dataset, saver):
 if __name__ == '__main__':
     opt = option()
     opt.word_flag = True
-    opt.model_path = "E:/ProjectData/NCLS/MaskedKeywordsModel-Test"
-    fields, train_dataset = build_mask_dataset(use_part='train', word_flag=False)
-    print(len(train_dataset))
-    exit()
+    opt.model_path = "E:/ProjectData/NCLS/MaskedKeywordsModel-Overlap"
+    fields, train_dataset = build_overlap_mask_dataset(use_part='train', word_flag=False)
     test_dataset = train_dataset
     # _, valid_dataset = build_mask_dataset(use_part='valid', word_flag=False)
     # _, test_dataset = build_mask_dataset(use_part='test', word_flag=False)

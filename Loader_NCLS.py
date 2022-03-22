@@ -263,25 +263,60 @@ def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10,
     return field, treated_samples_all
 
 
+def build_overlap_mask_dataset(sample_number=None, use_part='train', keywords_number=10, ignore_number=50,
+                               word_flag=True):
+    field = Field(unk=True, pad=True, bos=True, eos=True)
+    if word_flag:
+        with open(load_path + 'SharedDictionary.vocab', 'r', encoding='UTF-8')as file:
+            dictionary_words = [line.strip() for line in file]
+    else:
+        with open(load_path + 'SharedDictionary_Character.vocab', 'r', encoding='UTF-8')as file:
+            dictionary_words = [line.strip() for line in file]
+    dictionary_words.append('[MASK]')
+
+    field.load_vocab(dictionary_words, field.special)
+    total_data = ncls_loader(sample_number, use_part)
+
+    ############################################
+
+    ignore_words = set()
+    with open(load_path + 'IgnoreWords.txt', 'r', encoding='UTF-8') as file:
+        for _ in range(ignore_number):
+            raw_text = file.readline()
+            ignore_words.add(raw_text.split(',')[0])
+
+    treated_samples_all = []
+    for sample in tqdm.tqdm(total_data):
+        treat_article = sample['Article'].lower().strip()[0:2048].split()
+        summary = set(sample['Summary'].lower().strip().split())
+        if word_flag:
+            treat_summary = jieba.lcut(sample['CrossLingualSummary'])
+        else:
+            treat_summary = [_ for _ in sample['CrossLingualSummary'].lower()]
+        if len(treat_summary) > len(treat_article): continue
+
+        for word in ignore_words:
+            if word in summary: summary.remove(word)
+
+        keywords_dictionary = {}
+        for word in treat_article:
+            if word in summary:
+                if word in keywords_dictionary.keys():
+                    keywords_dictionary[word] += 1
+                else:
+                    keywords_dictionary[word] = 1
+        keywords_tuple = [[_, keywords_dictionary[_]] for _ in keywords_dictionary]
+        keywords_tuple = sorted(keywords_tuple, key=lambda x: x[-1], reverse=True)[0:keywords_number]
+        treat_keywords = set([_[0] for _ in keywords_tuple])
+
+        treated_samples_all.append(field.process_with_mask(treat_article, treat_summary, treat_keywords, device))
+
+    return field, treated_samples_all
+
+
 if __name__ == '__main__':
-    field, dataset = build_mask_dataset(word_flag=False, sample_number=1000)
+    field, dataset = build_overlap_mask_dataset(word_flag=False, sample_number=1000)
 
-    search_index = len(dataset) - 1
-    for counter in range(100):
-        # print(dataset[search_index - counter])
-        print(field.decode(dataset[search_index - counter].src))
-        print(field.decode(dataset[search_index - counter].tgt))
-        current = []
-        for _ in range(len(dataset[search_index - counter].src)):
-            if dataset[search_index - counter].tgt[_] == 1:
-                current.append(dataset[search_index - counter].src[_])
-            else:
-                current.append(dataset[search_index - counter].tgt[_])
-
-        print(current)
-        print(field.decode(current))
-        print()
-        exit()
     exit()
     for sample in result[0]:
         print(sample, result[0][sample])
