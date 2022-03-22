@@ -8,6 +8,7 @@ import numpy
 from Tools import get_device, ProgressBar
 from Loader_NCLS import build_mask_dataset
 from beaver.loss import WarmAdam, LabelSmoothingLoss
+from beaver.loss.optimizers import LabelChooseLoss
 from beaver.model import NMTModel, MaskedKeywordsModel
 from beaver.utils import Saver
 
@@ -72,17 +73,21 @@ def train(model, criterion, optimizer, train_dataset, valid_dataset, saver):
 if __name__ == '__main__':
     opt = option()
     opt.word_flag = True
-    opt.model_path = "E:/ProjectData/NCLS/MaskedKeywordsModel-Character"
+    opt.model_path = "E:/ProjectData/NCLS/MaskedKeywordsModel-Test"
     fields, train_dataset = build_mask_dataset(use_part='train', word_flag=False)
-    _, valid_dataset = build_mask_dataset(use_part='valid', word_flag=False)
-    _, test_dataset = build_mask_dataset(use_part='test', word_flag=False)
+    print(len(train_dataset))
+    exit()
+    test_dataset = train_dataset
+    # _, valid_dataset = build_mask_dataset(use_part='valid', word_flag=False)
+    # _, test_dataset = build_mask_dataset(use_part='test', word_flag=False)
 
     pad_ids = {"src": fields.pad_id, "tgt": fields.pad_id}
     vocab_sizes = {"src": len(fields.vocab), "tgt": len(fields.vocab)}
     model = MaskedKeywordsModel.load_model(opt, pad_ids, vocab_sizes).to(device)
 
     saver = Saver(opt)
-    criterion = LabelSmoothingLoss(opt.label_smoothing, vocab_sizes["tgt"], pad_ids["tgt"]).to(device)
+    # criterion = LabelSmoothingLoss(opt.label_smoothing, vocab_sizes["tgt"], pad_ids["tgt"]).to(device)
+    criterion = LabelChooseLoss(vocab_sizes["tgt"], pad_ids["tgt"]).to(device)
 
     optimizer = torch.optim.RMSprop(model.parameters(), opt.lr)
     train(model, criterion, optimizer, train_dataset, test_dataset, saver)

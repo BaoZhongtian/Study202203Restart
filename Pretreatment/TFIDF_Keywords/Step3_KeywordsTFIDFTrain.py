@@ -19,4 +19,4 @@ if __name__ == '__main__':
 
     print(numpy.shape(total_data))
     tfidf = transformer.fit_transform(total_data)
-    joblib.dump(transformer, 'TfIdfTransformer.joblib')
+    joblib.dump(transformer, '../TfIdfTransformer.joblib')

@@ -5,13 +5,13 @@ import tqdm
 import json
 
 if __name__ == '__main__':
-    with open('EnglishDictionary.vocab', 'r', encoding='UTF-8') as file:
+    with open('../EnglishDictionary.vocab', 'r', encoding='UTF-8') as file:
         data = file.readlines()
     id2word = {}
     for index in range(len(data)):
         id2word[index] = data[index].replace('\n', '')
 
-    tfidf = joblib.load('TfIdfTransformer.joblib')
+    tfidf = joblib.load('../TfIdfTransformer.joblib')
     load_path = 'E:/ProjectData/NCLS/Matrix-Test/'
     save_path = 'E:/ProjectData/NCLS/Keywords-Test-Result/'
     if not os.path.exists(save_path): os.makedirs(save_path)

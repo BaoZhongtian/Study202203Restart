@@ -41,7 +41,7 @@ if __name__ == '__main__':
     #         total_keywords.append(treat_keywords)
     # json.dump(total_keywords, open('TrainKeywords.json', 'w'))
 
-    with open('RepeatWords.txt', 'r', encoding='UTF-8') as file:
+    with open('../RepeatWords.txt', 'r', encoding='UTF-8') as file:
         data = file.readlines()
     ignore_words = [_[0:-1] for _ in data[0:ignore_most_frequent]]
 
@@ -59,4 +59,4 @@ if __name__ == '__main__':
                 if treat_sample[search_index][0] in ignore_words: continue
                 treat_keywords.append(treat_sample[search_index])
             total_keywords.append(treat_keywords)
-    json.dump(total_keywords, open('ValidKeywords.json', 'w'))
+    json.dump(total_keywords, open('../ValidKeywords.json', 'w'))

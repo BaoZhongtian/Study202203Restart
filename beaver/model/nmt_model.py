@@ -9,10 +9,11 @@ from beaver.model.transformer import Decoder, Encoder
 
 
 class Generator(nn.Module):
-    def __init__(self, hidden_size: int, tgt_vocab_size: int):
+    def __init__(self, hidden_size: int, tgt_vocab_size: int, lsm_flag=True):
         self.vocab_size = tgt_vocab_size
         super(Generator, self).__init__()
         self.linear_hidden = nn.Linear(hidden_size, tgt_vocab_size)
+        self.lsm_flag = lsm_flag
         self.lsm = nn.LogSoftmax(dim=-1)
 
         self.reset_parameters()
@@ -22,8 +23,11 @@ class Generator(nn.Module):
 
     def forward(self, dec_out):
         score = self.linear_hidden(dec_out)
-        lsm_score = self.lsm(score)
-        return lsm_score
+        if self.lsm_flag:
+            lsm_score = self.lsm(score)
+            return lsm_score
+        else:
+            return score
 
 
 class NMTModel(nn.Module):
@@ -102,7 +106,9 @@ class MaskedKeywordsModel(nn.Module):
         src_pad = src.eq(self.encoder.embedding.word_padding_idx)
 
         enc_out = self.encoder(src, src_pad)
-        score = self.linear_hidden(enc_out)[:, 1:, :]
+        # score = self.linear_hidden(enc_out)
+        score = self.linear_hidden(enc_out)
+        # return score
         lsm_score = self.lsm(score)
         return lsm_score
 

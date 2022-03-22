@@ -38,3 +38,22 @@ class LabelSmoothingLoss(nn.Module):
         eps_i = self.label_smoothing / self.vocab_size
         loss = (1. - self.label_smoothing) * nll_loss + eps_i * smooth_loss
         return loss / non_pad_mask.float().sum()
+
+
+class LabelChooseLoss(nn.Module):
+    def __init__(self, tgt_vocab_size, ignore_index):
+        self.padding_idx = ignore_index
+        self.vocab_size = tgt_vocab_size
+        super(LabelChooseLoss, self).__init__()
+        self.loss_function = nn.CrossEntropyLoss()
+
+    def forward(self, output, target):
+        output = output.view(-1, self.vocab_size)
+        non_pad_mask = target.view(-1).ne(self.padding_idx)
+        assert output.size()[0] == non_pad_mask.size()[0]
+
+        output = output[non_pad_mask]
+        target = target.view(-1)[non_pad_mask]
+        assert output.size()[0] == target.size()[0]
+        loss = self.loss_function(output, target)
+        return loss

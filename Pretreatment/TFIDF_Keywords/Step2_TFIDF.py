@@ -4,7 +4,7 @@ import tqdm
 from Loader_NCLS import ncls_loader
 
 if __name__ == '__main__':
-    with open('EnglishDictionary.vocab', 'r', encoding='UTF-8') as file:
+    with open('../EnglishDictionary.vocab', 'r', encoding='UTF-8') as file:
         data = file.readlines()
 
     english_dictionary = set([_.replace('\n', '') for _ in data])

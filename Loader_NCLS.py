@@ -14,7 +14,7 @@ EOS_TOKEN = "<eos>"
 BOS_TOKEN = "<bos>"
 UNK_TOKEN = "<unk>"
 PAD_TOKEN = "<pad>"
-load_path = 'C:/PythonProject/Study202203Restart/Pretreatment/'
+load_path = 'D:/PythonProject/Study202203Restart/Pretreatment/'
 device = get_device()
 
 
@@ -264,9 +264,24 @@ def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10,
 
 
 if __name__ == '__main__':
-    _, dataset = build_mask_dataset(sample_number=100)
-    for sample in dataset:
-        print(numpy.shape(sample.src), numpy.shape(sample.tgt))
+    field, dataset = build_mask_dataset(word_flag=False, sample_number=1000)
+
+    search_index = len(dataset) - 1
+    for counter in range(100):
+        # print(dataset[search_index - counter])
+        print(field.decode(dataset[search_index - counter].src))
+        print(field.decode(dataset[search_index - counter].tgt))
+        current = []
+        for _ in range(len(dataset[search_index - counter].src)):
+            if dataset[search_index - counter].tgt[_] == 1:
+                current.append(dataset[search_index - counter].src[_])
+            else:
+                current.append(dataset[search_index - counter].tgt[_])
+
+        print(current)
+        print(field.decode(current))
+        print()
+        exit()
     exit()
     for sample in result[0]:
         print(sample, result[0][sample])

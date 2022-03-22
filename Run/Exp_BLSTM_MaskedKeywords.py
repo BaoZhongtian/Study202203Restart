@@ -1,6 +1,6 @@
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 import torch
 import numpy
@@ -17,9 +17,10 @@ if __name__ == '__main__':
     opt.model_path = "E:/ProjectData/NCLS/MaskedKeywordsModel-BiLSTM-Character"
     saver = Saver(opt)
 
-    fields, train_dataset = build_mask_dataset(use_part='train', word_flag=opt.word_flag)
+    fields, train_dataset = build_mask_dataset(use_part='train', word_flag=opt.word_flag, sample_number=100)
+    test_dataset = train_dataset
     # _, valid_dataset = build_mask_dataset(use_part='valid', word_flag=opt.word_flag)
-    _, test_dataset = build_mask_dataset(use_part='test', word_flag=opt.word_flag)
+    # _, test_dataset = build_mask_dataset(use_part='test', word_flag=opt.word_flag)
 
     model = BiLSTMMaskedKeywordsModel(vocab_sizes=len(fields.vocab), pad_ids=fields.pad_id)
     model.cuda()

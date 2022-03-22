@@ -18,13 +18,13 @@ if __name__ == '__main__':
     #         file.write(word + '\n')
 
     total_dictionary = []
-    with open('EnglishDictionary.vocab', 'r', encoding='UTF-8') as file:
+    with open('../EnglishDictionary.vocab', 'r', encoding='UTF-8') as file:
         data = file.readlines()
         total_dictionary.extend([_.replace('\n', '') for _ in data])
 
-    with open('ChineseDictionary_Character.vocab', 'r', encoding='UTF-8') as file:
+    with open('../ChineseDictionary_Character.vocab', 'r', encoding='UTF-8') as file:
         data = file.readlines()
         total_dictionary.extend([_.replace('\n', '') for _ in data])
-    with open('SharedDictionary_Character.vocab', 'w', encoding='UTF-8') as file:
+    with open('../SharedDictionary_Character.vocab', 'w', encoding='UTF-8') as file:
         for sample in total_dictionary:
             file.write(sample + '\n')
