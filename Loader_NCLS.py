@@ -14,7 +14,7 @@ EOS_TOKEN = "<eos>"
 BOS_TOKEN = "<bos>"
 UNK_TOKEN = "<unk>"
 PAD_TOKEN = "<pad>"
-load_path = 'D:/PythonProject/Study202203Restart/Pretreatment/'
+load_path = 'C:/PythonProject/Study202203Restart/Pretreatment/'
 device = get_device()
 
 
@@ -264,7 +264,7 @@ def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10,
 
 
 def build_overlap_mask_dataset(sample_number=None, use_part='train', keywords_number=10, ignore_number=50,
-                               word_flag=True):
+                               word_flag=True, max_size=2048):
     field = Field(unk=True, pad=True, bos=True, eos=True)
     if word_flag:
         with open(load_path + 'SharedDictionary.vocab', 'r', encoding='UTF-8')as file:
@@ -287,12 +287,18 @@ def build_overlap_mask_dataset(sample_number=None, use_part='train', keywords_nu
 
     treated_samples_all = []
     for sample in tqdm.tqdm(total_data):
-        treat_article = sample['Article'].lower().strip()[0:2048].split()
+        treat_article = sample['Article'].lower().strip()[0:max_size].split()
         summary = set(sample['Summary'].lower().strip().split())
         if word_flag:
             treat_summary = jieba.lcut(sample['CrossLingualSummary'])
         else:
             treat_summary = [_ for _ in sample['CrossLingualSummary'].lower()]
+
+        ########################################
+        # Warning
+        treat_summary = sample['Summary'].lower().strip().split()
+        ########################################
+
         if len(treat_summary) > len(treat_article): continue
 
         for word in ignore_words:
@@ -316,7 +322,9 @@ def build_overlap_mask_dataset(sample_number=None, use_part='train', keywords_nu
 
 if __name__ == '__main__':
     field, dataset = build_overlap_mask_dataset(word_flag=False, sample_number=1000)
-
+    for sample in dataset:
+        print(field.decode(sample.src))
+        exit()
     exit()
     for sample in result[0]:
         print(sample, result[0][sample])

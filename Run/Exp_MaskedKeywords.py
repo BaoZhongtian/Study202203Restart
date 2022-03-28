@@ -1,7 +1,7 @@
 import os
 import tqdm
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 from ModelStructure.option import option
 import torch
 import numpy
@@ -24,6 +24,7 @@ def valid(model, criterion, valid_dataset, step, saver):
         tgt = torch.LongTensor(batch.tgt).unsqueeze(0).to(device)
         scores = model(src, tgt)
         loss = criterion(scores, tgt)
+        if torch.isnan(loss): continue
         total_loss += loss.data
         total += 1
 
@@ -46,6 +47,7 @@ def train(model, criterion, optimizer, train_dataset, valid_dataset, saver):
 
             scores = model(src, tgt)
             loss = criterion(scores, tgt)
+            if torch.isnan(loss): continue
             loss.backward()
             total_loss += loss.data
 
@@ -73,11 +75,12 @@ def train(model, criterion, optimizer, train_dataset, valid_dataset, saver):
 if __name__ == '__main__':
     opt = option()
     opt.word_flag = True
-    opt.model_path = "E:/ProjectData/NCLS/MaskedKeywordsModel-Overlap"
-    fields, train_dataset = build_overlap_mask_dataset(use_part='train', word_flag=False)
-    test_dataset = train_dataset
-    # _, valid_dataset = build_mask_dataset(use_part='valid', word_flag=False)
-    # _, test_dataset = build_mask_dataset(use_part='test', word_flag=False)
+    opt.model_path = "E:/ProjectData/NCLS-MKM/MaskedKeywordsModel-Overlap-100K-English"
+    fields, train_dataset = build_overlap_mask_dataset(use_part='train', word_flag=False, sample_number=100000,
+                                                       max_size=99999)
+    # test_dataset = train_dataset
+    _, valid_dataset = build_mask_dataset(use_part='valid', word_flag=False)
+    _, test_dataset = build_mask_dataset(use_part='test', word_flag=False)
 
     pad_ids = {"src": fields.pad_id, "tgt": fields.pad_id}
     vocab_sizes = {"src": len(fields.vocab), "tgt": len(fields.vocab)}
