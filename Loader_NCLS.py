@@ -14,7 +14,7 @@ EOS_TOKEN = "<eos>"
 BOS_TOKEN = "<bos>"
 UNK_TOKEN = "<unk>"
 PAD_TOKEN = "<pad>"
-load_path = 'C:/PythonProject/Study202203Restart/Pretreatment/'
+load_path = 'D:/PythonProject/Study202203Restart/Pretreatment/'
 device = get_device()
 
 
@@ -255,7 +255,8 @@ def build_dataset(sample_number=None, use_part='train', batch_shape_limit=1024, 
                               word_flag)
 
 
-def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10, word_flag=True, separate_flag=False):
+def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10, word_flag=True, max_size=1000,
+                       separate_flag=False):
     field = Field(unk=True, pad=True, bos=True, eos=True)
     if word_flag:
         with open(load_path + 'SharedDictionary.vocab', 'r', encoding='UTF-8')as file:
@@ -273,7 +274,7 @@ def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10,
 
     treated_samples_all = []
     for indexX in tqdm.trange(len(total_data)):
-        treat_article = total_data[indexX]['Article'].lower().strip().split()[0:1000].copy()
+        treat_article = total_data[indexX]['Article'].lower().strip().split()[0:max_size].copy()
         if word_flag:
             treat_summary = jieba.lcut(total_data[indexX]['CrossLingualSummary'])
         else:
@@ -290,7 +291,7 @@ def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10,
 
 
 def build_overlap_mask_dataset(sample_number=None, use_part='train', keywords_number=10, ignore_number=50,
-                               word_flag=True, max_size=2048, separate_flag=False):
+                               word_flag=True, max_size=1000, separate_flag=False):
     field = Field(unk=True, pad=True, bos=True, eos=True)
     if word_flag:
         with open(load_path + 'SharedDictionary.vocab', 'r', encoding='UTF-8')as file:
@@ -350,7 +351,7 @@ def build_overlap_mask_dataset(sample_number=None, use_part='train', keywords_nu
 
 
 if __name__ == '__main__':
-    field, dataset = build_overlap_mask_dataset(word_flag=False, sample_number=1000, separate_flag=True)
+    field, dataset = build_overlap_mask_dataset(word_flag=False, separate_flag=True)
     for sample in dataset:
         print("\n\n")
         print(field.decode(sample.summary))
