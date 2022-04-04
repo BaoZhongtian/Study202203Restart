@@ -350,13 +350,55 @@ def build_overlap_mask_dataset(sample_number=None, use_part='train', keywords_nu
     return field, treated_samples_all
 
 
+def build_overlap_cnn_dm_dataset(use_part='train', keywords_number=10, ignore_number=50, max_size=1000,
+                                 separate_flag=False):
+    field = Field(unk=True, pad=True, bos=True, eos=True)
+    total_data = json.load(open('D:/PythonProject/Study202203Restart/Pretreatment/CNNDM_%s.json' % use_part))
+    with open(load_path + 'CNNDM_Dictionary.vocab', 'r', encoding='UTF-8')as file:
+        dictionary_words = [line.strip() for line in file]
+    dictionary_words.append('[MASK]')
+    field.load_vocab(dictionary_words, field.special)
+
+    ignore_words = set()
+    with open(load_path + 'IgnoreWords.txt', 'r', encoding='UTF-8') as file:
+        for _ in range(ignore_number):
+            raw_text = file.readline()
+            ignore_words.add(raw_text.split(',')[0])
+
+    #############################################
+    treated_samples_all = []
+    for sample in tqdm.tqdm(total_data):
+        treat_article = sample['article'].lower().strip()[0:max_size].split()
+        treat_summary = sample['summary'].lower().strip().split()
+        summary = set(sample['summary'].lower().strip().split())
+
+        if len(summary) > len(treat_article): continue
+        for word in ignore_words:
+            if word in summary: summary.remove(word)
+
+        keywords_dictionary = {}
+        for word in treat_article:
+            if word in summary:
+                if word in keywords_dictionary.keys():
+                    keywords_dictionary[word] += 1
+                else:
+                    keywords_dictionary[word] = 1
+        keywords_tuple = [[_, keywords_dictionary[_]] for _ in keywords_dictionary]
+        keywords_tuple = sorted(keywords_tuple, key=lambda x: x[-1], reverse=True)[0:keywords_number]
+        treat_keywords = set([_[0] for _ in keywords_tuple])
+
+        if separate_flag:
+            treated_samples_all.append(
+                field.process_with_mask_separate(treat_article, treat_summary, treat_keywords, device))
+        else:
+            treated_samples_all.append(field.process_with_mask(treat_article, treat_summary, treat_keywords, device))
+    return field, treated_samples_all
+
+
 if __name__ == '__main__':
-    field, dataset = build_overlap_mask_dataset(word_flag=False, separate_flag=True)
-    for sample in dataset:
-        print("\n\n")
-        print(field.decode(sample.summary))
-        print(field.decode(sample.article))
-        exit()
+    field, dataset = build_overlap_cnn_dm_dataset(separate_flag=True)
+    for _ in tqdm.tqdm(dataset):
+        pass
     exit()
     for sample in result[0]:
         print(sample, result[0][sample])

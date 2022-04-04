@@ -1,5 +1,5 @@
-from transformers import EncoderDecoderModel, BertConfig, BertGenerationEncoder, BertGenerationDecoder
-from Loader_NCLS import build_mask_dataset, build_overlap_mask_dataset, build_overlap_cnn_dm_dataset
+from transformers import EncoderDecoderModel, BertConfig, BertGenerationEncoder, BertGenerationDecoder, BertTokenizer
+from Loader_CNNDM import loader_cnndm
 from Tools import ProgressBar, SaveModel
 import torch
 import numpy
@@ -9,24 +9,15 @@ import datetime
 cuda_flag = True
 
 if __name__ == '__main__':
-    field, train_data = build_overlap_cnn_dm_dataset(use_part='train', separate_flag=True)
-    _, val_data = build_overlap_cnn_dm_dataset(use_part='test', separate_flag=True)
+    tokenizer = BertTokenizer.from_pretrained('D:/PythonProject/bert-base-uncased/')
+    train_data, val_data = loader_cnndm(
+        batch_size=3, tokenizer=tokenizer, small_data_flag=True, train_part_shuffle=False)
 
-    save_path = 'Bert2Bert_MKM_CNNDM/'
+    save_path = 'Bert2Bert_MKM_CNNDM_BertBaseUncased/'
     if not os.path.exists(save_path): os.makedirs(save_path)
 
-    config = BertConfig.from_pretrained('C:/PythonProject/bert-base-uncased')
-    config.pad_token_id = field.pad_id
-    config.sep_token_id = field.bos_id
-    config.bos_token_id = field.bos_id
-    config.eos_token_id = field.eos_id
-    config.max_length = 2048
-    config.max_position_embeddings = 2048
-    config.decoder_start_token_id = field.bos_id
-    config.vocab_size = len(field.vocab)
-
-    encoder = BertGenerationEncoder(config)
-    decoder = BertGenerationDecoder(config)
+    encoder = BertGenerationEncoder.from_pretrained('D:/PythonProject/bert-base-uncased/')
+    decoder = BertGenerationDecoder.from_pretrained('D:/PythonProject/bert-base-uncased/')
     model = EncoderDecoderModel(encoder=encoder, decoder=decoder)
     if cuda_flag: model = model.cuda()
     optimizer = torch.optim.AdamW(params=model.parameters(), lr=1E-4)
@@ -39,9 +30,9 @@ if __name__ == '__main__':
     for epoch in range(20):
         for i, batch in enumerate(train_data):
             step_counter += 1
-            summary = torch.LongTensor(batch.summary).unsqueeze(0)
-            article = torch.LongTensor(batch.article).unsqueeze(0)
-            labels = torch.LongTensor(batch.label).unsqueeze(0)
+            summary = torch.LongTensor(batch.summary)
+            article = torch.LongTensor(batch.article)
+            labels = torch.LongTensor(batch.label)
             if cuda_flag:
                 summary, article, labels = summary.cuda(), article.cuda(), labels.cuda()
 
