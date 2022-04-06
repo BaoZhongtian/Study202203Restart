@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from transformers import BertTokenizer, BartTokenizer
 from Loader_NCLS import MaskedExample
 
-load_path = 'D:/PythonProject/Study202203Restart/Pretreatment/'
+load_path = '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/DataSource/'
 
 
 class CollateClass:
@@ -49,15 +49,14 @@ class CollateClass:
         batch_summary, batch_article, batch_label = [], [], []
         for index in range(len(input_data)):
             current_summary_token = self.tokenizer.encode_plus(
-                input_data[index]['summary'], add_special_tokens=True)['input_ids']
+                input_data[index]['summary'], add_special_tokens=True, max_length=512)['input_ids']
 
             current_lm_label = []
 
             #######################################
             current_keywords = self.overlap_keywords_generation(input_data[index])
-            if current_keywords is None:
-                print('Check')
-                exit()
+            if current_keywords is None: return None
+            if len(current_keywords) == 0: return None
             current_keywords_tokens = self.tokenizer.batch_encode_plus(
                 [' ' + _ for _ in current_keywords], add_special_tokens=False)['input_ids']
             current_article_token = self.tokenizer.encode_plus(
@@ -110,7 +109,7 @@ class CollateClass:
 
 
 def loader_cnndm(
-        batch_size=4, tokenizer=None, train_part_shuffle=True, small_data_flag=False, limit_size=None):
+        batch_size=4, tokenizer=None, train_part_shuffle=False, small_data_flag=False, limit_size=None):
     if tokenizer is None: tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
     if small_data_flag:
@@ -135,9 +134,9 @@ def loader_cnndm(
 
 
 if __name__ == '__main__':
-    tokenizer = BertTokenizer.from_pretrained('D:/PythonProject/bert-base-uncased/')
+    tokenizer = BertTokenizer.from_pretrained('/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-uncased/')
     train_loader, test_loader = loader_cnndm(
-        batch_size=3, tokenizer=tokenizer, small_data_flag=True, train_part_shuffle=False)
+        batch_size=3, tokenizer=tokenizer, small_data_flag=False, train_part_shuffle=False)
     for sample in train_loader:
         print(numpy.shape(sample.article), numpy.shape(sample.summary), numpy.shape(sample.label))
         # exit()

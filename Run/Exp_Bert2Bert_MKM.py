@@ -9,25 +9,17 @@ import datetime
 cuda_flag = True
 
 if __name__ == '__main__':
-    field, train_data = build_overlap_cnn_dm_dataset(use_part='train', separate_flag=True)
-    _, val_data = build_overlap_cnn_dm_dataset(use_part='test', separate_flag=True)
+    field, train_data = build_overlap_mask_dataset(use_part='train', separate_flag=True, sample_number=1000, word_flag=False)
+    _, val_data = build_overlap_mask_dataset(use_part='test', separate_flag=True, word_flag=False)
 
-    save_path = 'Bert2Bert_MKM_CNNDM/'
+    save_path = 'Bert2Bert_MKM_NCLS_Overlap/'
     if not os.path.exists(save_path): os.makedirs(save_path)
 
-    config = BertConfig.from_pretrained('C:/PythonProject/bert-base-uncased')
-    config.pad_token_id = field.pad_id
-    config.sep_token_id = field.bos_id
-    config.bos_token_id = field.bos_id
-    config.eos_token_id = field.eos_id
-    config.max_length = 2048
-    config.max_position_embeddings = 2048
-    config.decoder_start_token_id = field.bos_id
-    config.vocab_size = len(field.vocab)
-
-    encoder = BertGenerationEncoder(config)
-    decoder = BertGenerationDecoder(config)
-    model = EncoderDecoderModel(encoder=encoder, decoder=decoder)
+    model = EncoderDecoderModel.from_encoder_decoder_pretrained(
+        '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-multilingual-cased/',
+        '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-multilingual-cased/')
+    # model = EncoderDecoderModel.from_pretrained(
+    #     '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/Bert2Bert_MKM_CNNDM_BertBaseUncased/checkpoint-step-015000')
     if cuda_flag: model = model.cuda()
     optimizer = torch.optim.AdamW(params=model.parameters(), lr=1E-4)
 

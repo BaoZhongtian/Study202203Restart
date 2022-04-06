@@ -1,4 +1,5 @@
-from transformers import EncoderDecoderModel, BertConfig, BertGenerationEncoder, BertGenerationDecoder, BertTokenizer
+from transformers import EncoderDecoderModel, BertConfig, BertGenerationEncoder, BertGenerationDecoder, BertTokenizer, \
+    BertModel
 from Loader_CNNDM import loader_cnndm
 from Tools import ProgressBar, SaveModel
 import torch
@@ -9,27 +10,30 @@ import datetime
 cuda_flag = True
 
 if __name__ == '__main__':
-    tokenizer = BertTokenizer.from_pretrained('D:/PythonProject/bert-base-uncased/')
+    tokenizer = BertTokenizer.from_pretrained(
+        '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-uncased/')
     train_data, val_data = loader_cnndm(
-        batch_size=3, tokenizer=tokenizer, small_data_flag=True, train_part_shuffle=False)
+        batch_size=4, tokenizer=tokenizer, small_data_flag=False, train_part_shuffle=True)
 
     save_path = 'Bert2Bert_MKM_CNNDM_BertBaseUncased/'
     if not os.path.exists(save_path): os.makedirs(save_path)
 
-    encoder = BertGenerationEncoder.from_pretrained('D:/PythonProject/bert-base-uncased/')
-    decoder = BertGenerationDecoder.from_pretrained('D:/PythonProject/bert-base-uncased/')
-    model = EncoderDecoderModel(encoder=encoder, decoder=decoder)
+    # model = EncoderDecoderModel.from_encoder_decoder_pretrained('/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-uncased/', '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-uncased/')
+    model = EncoderDecoderModel.from_pretrained(
+        '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/Bert2Bert_MKM_CNNDM_BertBaseUncased/checkpoint-step-015000')
     if cuda_flag: model = model.cuda()
     optimizer = torch.optim.AdamW(params=model.parameters(), lr=1E-4)
 
     total_loss = 0.0
-    step_counter = 0
+    step_counter = 15000
     model.zero_grad()
     pbar = ProgressBar(n_total=20 * len(train_data))
 
     for epoch in range(20):
         for i, batch in enumerate(train_data):
+            if batch is None: continue
             step_counter += 1
+
             summary = torch.LongTensor(batch.summary)
             article = torch.LongTensor(batch.article)
             labels = torch.LongTensor(batch.label)
@@ -50,9 +54,12 @@ if __name__ == '__main__':
                 with torch.set_grad_enabled(False):
                     val_pbar = ProgressBar(n_total=len(val_data))
                     for i, batch in enumerate(val_data):
-                        summary = torch.LongTensor(batch.summary).unsqueeze(0)
-                        article = torch.LongTensor(batch.article).unsqueeze(0)
-                        labels = torch.LongTensor(batch.label).unsqueeze(0)
+                        if batch is None: continue
+                        if len(batch.article) == 0: continue
+
+                        summary = torch.LongTensor(batch.summary)
+                        article = torch.LongTensor(batch.article)
+                        labels = torch.LongTensor(batch.label)
                         if cuda_flag:
                             summary, article, labels = summary.cuda(), article.cuda(), labels.cuda()
                         loss = model.forward(input_ids=summary, decoder_input_ids=article, labels=labels).loss
@@ -66,5 +73,6 @@ if __name__ == '__main__':
 
                     filename = "checkpoint-step-%06d" % step_counter
                     full_filename = os.path.join(save_path, filename)
-                    SaveModel(model, save_path + filename)
+                    model.save_pretrained(save_path + filename)
+
                 total_loss = 0.0
