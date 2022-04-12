@@ -1,6 +1,7 @@
 from transformers import EncoderDecoderModel, BertConfig, BertGenerationEncoder, BertGenerationDecoder, BertTokenizer, \
     BertModel
 from Loader_CNNDM import loader_cnndm
+from Loader_NCLS_Neo import build_ncls_neo
 from Tools import ProgressBar, SaveModel
 import torch
 import numpy
@@ -11,16 +12,20 @@ cuda_flag = True
 
 if __name__ == '__main__':
     tokenizer = BertTokenizer.from_pretrained(
-        '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-uncased/')
-    train_data, val_data = loader_cnndm(
-        batch_size=4, tokenizer=tokenizer, small_data_flag=False, train_part_shuffle=True)
+        'D:/PythonProject/bert-base-multilingual-cased/')
+    # train_data, val_data = loader_cnndm(
+    #     batch_size=4, tokenizer=tokenizer, small_data_flag=False, train_part_shuffle=True)
+    train_data, val_data = build_ncls_neo(
+        tokenizer=tokenizer, train_part_shuffle=True, sample_number=1000)
 
-    save_path = 'Bert2Bert_MKM_CNNDM_BertBaseUncased/'
+    save_path = 'Bert2Bert_MKM_NCLS/'
     if not os.path.exists(save_path): os.makedirs(save_path)
 
-    # model = EncoderDecoderModel.from_encoder_decoder_pretrained('/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-uncased/', '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-uncased/')
-    model = EncoderDecoderModel.from_pretrained(
-        '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/Bert2Bert_MKM_CNNDM_BertBaseUncased/checkpoint-step-015000')
+    model = EncoderDecoderModel.from_encoder_decoder_pretrained(
+        'D:/PythonProject/bert-base-multilingual-cased/',
+        'D:/PythonProject/bert-base-multilingual-cased/')
+    # model = EncoderDecoderModel.from_pretrained(
+    #     '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/Bert2Bert_MKM_CNNDM_BertBaseUncased/checkpoint-step-015000')
     if cuda_flag: model = model.cuda()
     optimizer = torch.optim.AdamW(params=model.parameters(), lr=1E-4)
 

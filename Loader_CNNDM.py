@@ -6,13 +6,14 @@ from torch.utils.data import DataLoader
 from transformers import BertTokenizer, BartTokenizer
 from Loader_NCLS import MaskedExample
 
-load_path = '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/DataSource/'
+load_path = 'D:/PythonProject/Study202203Restart/Pretreatment/'
 
 
 class CollateClass:
-    def __init__(self, tokenizer, ignore_number=50, select_keywords_number=10):
+    def __init__(self, tokenizer, ignore_number=50, select_keywords_number=10, cross_lingual_flag=False):
         self.tokenizer = tokenizer
         self.select_keywords_number = select_keywords_number
+        self.cross_lingual_flag = cross_lingual_flag
         self.ignore_words = set()
         with open(load_path + 'IgnoreWords.txt', 'r', encoding='UTF-8') as file:
             for _ in range(ignore_number):
@@ -20,7 +21,10 @@ class CollateClass:
                 self.ignore_words.add(raw_text.split(',')[0])
 
     def collate(self, input_data):
-        return self.collate_keywords(input_data)
+        if not self.cross_lingual_flag:
+            return self.collate_keywords(input_data)
+        else:
+            return self.collate_keywords_cross_lingual(input_data)
 
     def overlap_keywords_generation(self, sample):
         treat_article = sample['article'].lower().strip().split()
@@ -107,6 +111,12 @@ class CollateClass:
 
         return MaskedExample(padding_batch_summary, padding_batch_article, padding_batch_label)
 
+    def collate_keywords_cross_lingual(self, input_data):
+        part_result = self.collate_keywords(input_data)
+        assert len(part_result.article) == len(part_result.label) == 1
+        cross_lingual_summary_tokens = [self.tokenizer.encode_plus(input_data[0]['cross_lingual_summary'])['input_ids']]
+        return MaskedExample(cross_lingual_summary_tokens, part_result.article, part_result.label)
+
 
 def loader_cnndm(
         batch_size=4, tokenizer=None, train_part_shuffle=False, small_data_flag=False, limit_size=None):
@@ -134,7 +144,8 @@ def loader_cnndm(
 
 
 if __name__ == '__main__':
-    tokenizer = BertTokenizer.from_pretrained('/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-uncased/')
+    tokenizer = BertTokenizer.from_pretrained(
+        '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/bert-base-uncased/')
     train_loader, test_loader = loader_cnndm(
         batch_size=3, tokenizer=tokenizer, small_data_flag=False, train_part_shuffle=False)
     for sample in train_loader:
