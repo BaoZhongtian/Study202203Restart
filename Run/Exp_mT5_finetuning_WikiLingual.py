@@ -6,13 +6,13 @@ import os
 import datetime
 
 if __name__ == '__main__':
-    train_data, val_data = build_wiki_lingual()
-    save_path = 'mt5-small-WikiLingual-EN2ZH/'
+    target_lingual = 'Spanish'
+    train_data, val_data = build_wiki_lingual(part_name='English2%s' % target_lingual)
+    save_path = 'mt5-small-WikiLingual-English2%s/' % target_lingual
     if not os.path.exists(save_path): os.makedirs(save_path)
 
-    tokenizer = MT5Tokenizer.from_pretrained('/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/mt5-small')
-    model = MT5ForConditionalGeneration.from_pretrained(
-        '/root/autodl-tmp/MaskedKeywords/MaskedKeywordsExperiment/mt5-small')
+    tokenizer = MT5Tokenizer.from_pretrained('D:/PythonProject/mt5-small')
+    model = MT5ForConditionalGeneration.from_pretrained('D:/PythonProject/mt5-small')
     optimizer = torch.optim.AdamW(model.parameters(), 1E-4)
     model = model.cuda()
 
@@ -24,14 +24,14 @@ if __name__ == '__main__':
         for sample in train_data:
             step_counter += 1
 
-            article = sample['EnglishDocument']
-            cross_lingual_summary = sample['ChineseSummary']
-            article_tokenized = tokenizer.encode(
-                'summarize English to Chinese : ' + article, return_tensors='pt', max_length=512)
-            # article = sample['ChineseDocument']
-            # cross_lingual_summary = sample['EnglishSummary']
+            # article = sample['EnglishDocument']
+            # cross_lingual_summary = sample['%sSummary'%target_lingual]
             # article_tokenized = tokenizer.encode(
-            #    'summarize Chinese to English : ' + article, return_tensors='pt', max_length=512)
+            #     'summarize English to %s : '%target_lingual + article, return_tensors='pt', max_length=512)
+            article = sample['%sDocument' % target_lingual]
+            cross_lingual_summary = sample['EnglishSummary']
+            article_tokenized = tokenizer.encode(
+                'summarize %s to English : ' % target_lingual + article, return_tensors='pt', max_length=512)
 
             cross_lingual_summary_tokenized = tokenizer.encode(
                 ' ' + cross_lingual_summary, return_tensors='pt', max_length=512)
@@ -50,15 +50,16 @@ if __name__ == '__main__':
 
                 with torch.set_grad_enabled(False):
                     val_pbar = ProgressBar(n_total=len(val_data))
-                    for i, batch in enumerate(val_data):
-                        article = batch['EnglishDocument']
-                        cross_lingual_summary = batch['ChineseSummary']
-                        article_tokenized = tokenizer.encode(
-                            'summarize English to Chinese : ' + article, return_tensors='pt', max_length=512)
-                        # article = batch['ChineseDocument']
-                        # cross_lingual_summary = batch['EnglishSummary']
+                    for i, sample in enumerate(val_data):
+                        # article = sample['EnglishDocument']
+                        # cross_lingual_summary = sample['%sSummary'%target_lingual]
                         # article_tokenized = tokenizer.encode(
-                        #    'summarize Chinese to English : ' + article, return_tensors='pt', max_length=512)
+                        #     'summarize English to %s : '%target_lingual + article, return_tensors='pt', max_length=512)
+                        article = sample['%sDocument' % target_lingual]
+                        cross_lingual_summary = sample['EnglishSummary']
+                        article_tokenized = tokenizer.encode(
+                            'summarize %s to English : ' % target_lingual + article, return_tensors='pt',
+                            max_length=512)
 
                         cross_lingual_summary_tokenized = tokenizer.encode(
                             ' ' + cross_lingual_summary, return_tensors='pt', max_length=512)

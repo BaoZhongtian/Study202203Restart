@@ -22,4 +22,7 @@ def build_wiki_lingual(part_name='En2ZH'):
 
 
 if __name__ == '__main__':
-    build_wiki_lingual()
+    train_data, test_data = build_wiki_lingual(part_name='English2Spanish')
+    for sample in train_data[0]:
+        print(sample)
+        print(train_data[0][sample])
