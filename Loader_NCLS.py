@@ -18,7 +18,7 @@ load_path = 'D:/PythonProject/Study202203Restart/Pretreatment/'
 device = get_device()
 
 
-def ncls_loader(sample_number=None, use_part='train'):
+def ncls_loader_EN2ZH(sample_number=None, use_part='train'):
     with open(load_path + 'EN2ZHSUM_%s.txt' % use_part, 'r', encoding='UTF-8') as file:
         total_result, treat_sample = [], []
         treat_sentence = file.readline()
@@ -249,7 +249,7 @@ def build_dataset(sample_number=None, use_part='train', batch_shape_limit=1024, 
             dictionary_words = [line.strip() for line in file]
     src_field.load_vocab(dictionary_words, tgt_field.special)
     tgt_field.load_vocab(dictionary_words, tgt_field.special)
-    treat_data = ncls_loader(sample_number, use_part)
+    treat_data = ncls_loader_EN2ZH(sample_number, use_part)
 
     return TranslationDataset(treat_data, batch_shape_limit, device, False, {'src': src_field, 'tgt': tgt_field},
                               word_flag)
@@ -267,7 +267,7 @@ def build_mask_dataset(sample_number=None, use_part='train', keywords_number=10,
     dictionary_words.append('[MASK]')
 
     field.load_vocab(dictionary_words, field.special)
-    total_data = ncls_loader(sample_number, use_part)
+    total_data = ncls_loader_EN2ZH(sample_number, use_part)
     total_keywords = json.load(open(load_path + '%sKeywords.json' % use_part, 'r'))[0:len(total_data)]
 
     # mask_id = field.encode(['[MASK]'])[0]
@@ -302,7 +302,7 @@ def build_overlap_mask_dataset(sample_number=None, use_part='train', keywords_nu
     dictionary_words.append('[MASK]')
 
     field.load_vocab(dictionary_words, field.special)
-    total_data = ncls_loader(sample_number, use_part)
+    total_data = ncls_loader_EN2ZH(sample_number, use_part)
 
     ############################################
 

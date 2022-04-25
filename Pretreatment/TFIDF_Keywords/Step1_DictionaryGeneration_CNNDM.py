@@ -1,7 +1,7 @@
 import json
 import tqdm
 import collections
-from Loader_NCLS import ncls_loader
+from Loader_NCLS import ncls_loader_EN2ZH
 
 if __name__ == '__main__':
     counter_english = collections.Counter()

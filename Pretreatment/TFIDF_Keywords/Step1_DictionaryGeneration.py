@@ -1,14 +1,14 @@
 import jieba
 import tqdm
 import collections
-from Loader_NCLS import ncls_loader
+from Loader_NCLS import ncls_loader_EN2ZH
 
 if __name__ == '__main__':
     counter_english = collections.Counter()
     counter_chinese = collections.Counter()
 
     for use_part in ['valid', 'test', 'train']:
-        result = ncls_loader(use_part=use_part)
+        result = ncls_loader_EN2ZH(use_part=use_part)
         print()
         for sample in tqdm.tqdm(result):
             counter_english.update(sample['Article'].lower().strip().split())

@@ -1,7 +1,7 @@
 import os
 import numpy
 import tqdm
-from Loader_NCLS import ncls_loader
+from Loader_NCLS import ncls_loader_EN2ZH
 
 if __name__ == '__main__':
     with open('../EnglishDictionary.vocab', 'r', encoding='UTF-8') as file:
@@ -13,7 +13,7 @@ if __name__ == '__main__':
         word2id[data[index].replace('\n', '')] = index
 
     train_data = [_['Article'].lower().strip().split()[0:2048] for _ in
-                  ncls_loader(use_part='valid')]
+                  ncls_loader_EN2ZH(use_part='valid')]
 
     matrix = []
     match_counter, total_counter = 0, 0

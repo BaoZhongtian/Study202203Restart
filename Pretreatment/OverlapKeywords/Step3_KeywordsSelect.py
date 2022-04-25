@@ -1,5 +1,5 @@
 import tqdm
-from Loader_NCLS import ncls_loader
+from Loader_NCLS import ncls_loader_EN2ZH
 
 if __name__ == '__main__':
     use_part = 'valid'
@@ -13,7 +13,7 @@ if __name__ == '__main__':
             raw_text = file.readline()
             ignore_words.add(raw_text.split(',')[0])
 
-    train_data = ncls_loader(use_part=use_part, sample_number=sample_number)
+    train_data = ncls_loader_EN2ZH(use_part=use_part, sample_number=sample_number)
     for sample in tqdm.tqdm(train_data):
         article = sample['Article'].lower().strip().split()
         summary = set(sample['Summary'].lower().strip().split())

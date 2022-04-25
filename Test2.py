@@ -3,7 +3,7 @@ import json
 import numpy
 import tqdm
 from rouge_score import rouge_scorer
-from Loader_NCLS import build_dataset, ncls_loader
+from Loader_NCLS import build_dataset, ncls_loader_EN2ZH
 import datasets
 from Loader_WikiLingual import build_wiki_lingual
 from transformers import MT5Tokenizer

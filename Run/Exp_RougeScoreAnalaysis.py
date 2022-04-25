@@ -2,7 +2,7 @@ import os
 import json
 import numpy
 from rouge_score import rouge_scorer
-from Loader_NCLS import build_dataset, ncls_loader
+from Loader_NCLS import build_dataset, ncls_loader_EN2ZH
 import datasets
 
 if __name__ == '__main__':

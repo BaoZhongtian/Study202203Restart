@@ -1,14 +1,14 @@
 from transformers import MT5Tokenizer, MT5ForConditionalGeneration
-from Loader_NCLS import ncls_loader
+from Loader_NCLS import ncls_loader_EN2ZH
 from Tools import ProgressBar
 import torch
 import os
 import datetime
 
 if __name__ == '__main__':
-    train_data = ncls_loader(sample_number=1000, use_part='train')
+    train_data = ncls_loader_EN2ZH(sample_number=1000, use_part='train')
     print()
-    val_data = ncls_loader(use_part='test')
+    val_data = ncls_loader_EN2ZH(use_part='test')
     print()
     save_path = 'mt5-small-EN2ZH/'
     if not os.path.exists(save_path): os.makedirs(save_path)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
                 with torch.set_grad_enabled(False):
                     val_pbar = ProgressBar(n_total=len(val_data))
-                    for i, batch in enumerate(val_data):
+                    for i, sample in enumerate(val_data):
                         article = sample['Article']
                         summary = sample['Summary']
                         cross_lingual_summary = sample['CrossLingualSummary']
