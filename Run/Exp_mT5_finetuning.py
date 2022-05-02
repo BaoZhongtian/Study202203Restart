@@ -1,16 +1,19 @@
 from transformers import MT5Tokenizer, MT5ForConditionalGeneration
-from Loader_NCLS import ncls_loader_EN2ZH
+from Loader_NCLS import ncls_loader_EN2ZH, ncls_loader_ZH2EN
 from Tools import ProgressBar
 import torch
 import os
 import datetime
 
 if __name__ == '__main__':
-    train_data = ncls_loader_EN2ZH(sample_number=1000, use_part='train')
-    print()
-    val_data = ncls_loader_EN2ZH(use_part='test')
-    print()
-    save_path = 'mt5-small-EN2ZH/'
+    # train_data = ncls_loader_EN2ZH(sample_number=1000, use_part='train')
+    # val_data = ncls_loader_EN2ZH(use_part='test')
+    # print()
+    # save_path = 'mt5-small-EN2ZH/'
+
+    train_data, test_data, val_data = ncls_loader_ZH2EN()
+    save_path = 'mt5-small-ZH2EN/'
+
     if not os.path.exists(save_path): os.makedirs(save_path)
 
     tokenizer = MT5Tokenizer.from_pretrained('D:/PythonProject/mt5-small')
@@ -29,11 +32,13 @@ if __name__ == '__main__':
             article = sample['Article']
             summary = sample['Summary']
             cross_lingual_summary = sample['CrossLingualSummary']
+            # article_tokenized = tokenizer.encode(
+            #     'summarize English to Chinese : ' + article, return_tensors='pt', max_length=512)
             article_tokenized = tokenizer.encode(
-                'summarize English to Chinese : ' + article, return_tensors='pt', max_length=512)
-            summary_tokenized = tokenizer.encode(' ' + summary, return_tensors='pt', max_length=512)
+                'summarize Chinese to English : ' + article, return_tensors='pt', max_length=1024)
+            summary_tokenized = tokenizer.encode(' ' + summary, return_tensors='pt', max_length=1024)
             cross_lingual_summary_tokenized = tokenizer.encode(
-                ' ' + cross_lingual_summary, return_tensors='pt', max_length=512)
+                ' ' + cross_lingual_summary, return_tensors='pt', max_length=1024)
             result = model.forward(input_ids=article_tokenized.cuda(), labels=cross_lingual_summary_tokenized.cuda())
             loss = result.loss
 
@@ -43,7 +48,7 @@ if __name__ == '__main__':
             model.zero_grad()
 
             pbar(step_counter, {'loss': loss.data})
-            if step_counter % 5000 == 0:
+            if step_counter % 10000 == 0:
                 print("\nstep: %7d\t loss: %7f\n" % (step_counter, total_loss))
                 total_loss = 0.0
 
@@ -53,11 +58,13 @@ if __name__ == '__main__':
                         article = sample['Article']
                         summary = sample['Summary']
                         cross_lingual_summary = sample['CrossLingualSummary']
+                        # article_tokenized = tokenizer.encode(
+                        #     'summarize English to Chinese : ' + article, return_tensors='pt', max_length=512)
                         article_tokenized = tokenizer.encode(
-                            'summarize English to Chinese : ' + article, return_tensors='pt', max_length=512)
-                        summary_tokenized = tokenizer.encode(' ' + summary, return_tensors='pt', max_length=512)
+                            'summarize Chinese to English : ' + article, return_tensors='pt', max_length=1024)
+                        summary_tokenized = tokenizer.encode(' ' + summary, return_tensors='pt', max_length=1024)
                         cross_lingual_summary_tokenized = tokenizer.encode(
-                            ' ' + cross_lingual_summary, return_tensors='pt', max_length=512)
+                            ' ' + cross_lingual_summary, return_tensors='pt', max_length=1024)
                         result = model.forward(input_ids=article_tokenized.cuda(),
                                                labels=cross_lingual_summary_tokenized.cuda())
                         loss = result.loss

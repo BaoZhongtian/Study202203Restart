@@ -50,6 +50,74 @@ def ncls_loader_EN2ZH(sample_number=None, use_part='train'):
     return total_result
 
 
+def ncls_loader_ZH2EN():
+    total_sample = []
+    for partname in ['I', 'II', 'III']:
+        with open(load_path + '/Data/PART_' + partname + '.txt', 'r', encoding='UTF-8') as file:
+            raw_data = file.readlines()
+
+        current_sample = []
+        for line in tqdm.tqdm(raw_data):
+            if line[0:len('<doc id=')] == '<doc id=':
+                if len(current_sample) != 0:
+                    total_sample.append(current_sample)
+                current_sample = []
+            current_sample.append(line.replace('\n', '').replace(' ', ''))
+
+            #########################################
+            # if len(total_sample) > 20:
+            #     break
+            #########################################
+    total_sample.append(current_sample)
+
+    chinese_article, chinese_summary = {}, {}
+    for sample in tqdm.tqdm(total_sample):
+        if len(sample) < 8: continue
+        if sample[1] != '<summary>': continue
+        if sample[3] != '</summary>': continue
+        if sample[4] != '<short_text>': continue
+        if sample[6] != '</short_text>': continue
+        if sample[7] != '</doc>': continue
+        chinese_summary[sample[0].replace('<docid=', '').replace('>', '')] = sample[2]
+        chinese_article[sample[0].replace('<docid=', '').replace('>', '')] = sample[5]
+
+    print(len(total_sample), len(chinese_article), len(chinese_summary))
+    print(chinese_article['0'])
+    print(chinese_summary['0'])
+
+    ############################################
+
+    def connect_with_article(use_part):
+        with open(load_path + 'ZH2ENSUM_%s.txt' % use_part, 'r', encoding='UTF-8') as file:
+            raw_data = file.readlines()
+
+        total_sample, current_sample = [], []
+        for line in tqdm.tqdm(raw_data):
+            if line[0:len('<doc id=')] == '<doc id=':
+                if len(current_sample) != 0:
+                    total_sample.append(current_sample)
+                current_sample = []
+            current_sample.append(line.replace('\n', '').replace('\t', ''))
+        total_sample.append(current_sample)
+
+        returned_data = []
+        for sample in total_sample:
+            if sample[1] != '<EN-summary>': continue
+            if sample[3] != '</EN-summary>': continue
+
+            id = sample[0].replace('<doc id=', '').replace('>', '')
+            returned_data.append(
+                {'Article': chinese_article[id], 'Summary': chinese_summary[id], 'CrossLingualSummary': sample[2]})
+        return returned_data
+
+    train_data = connect_with_article('train')
+    val_data = connect_with_article('valid')
+    test_data = connect_with_article('test')
+    print(len(test_data))
+    exit()
+    return train_data, val_data, test_data
+
+
 class Field(object):
     def __init__(self, bos: bool, eos: bool, pad: bool, unk: bool):
         self.bos_token = BOS_TOKEN if bos else None
@@ -396,9 +464,4 @@ def build_overlap_cnn_dm_dataset(use_part='train', keywords_number=10, ignore_nu
 
 
 if __name__ == '__main__':
-    field, dataset = build_overlap_cnn_dm_dataset(separate_flag=True)
-    for _ in tqdm.tqdm(dataset):
-        pass
-    exit()
-    for sample in result[0]:
-        print(sample, result[0][sample])
+    ncls_loader_ZH2EN()
